@@ -71,6 +71,7 @@
         .nav-links {
             display: flex;
             gap: 25px;
+            align-items: center;
         }
 
         .nav-links a {
@@ -169,6 +170,11 @@
         .btn:hover {
             background-color: var(--primary-dark);
             transform: translateY(-2px);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.9rem;
         }
 
         /* Categorías */
@@ -606,6 +612,80 @@
             background-color: #dc2626;
         }
 
+        /* Editor de texto enriquecido */
+        .editor-toolbar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: var(--secondary);
+            border-radius: var(--radius);
+            flex-wrap: wrap;
+        }
+
+        .editor-btn {
+            padding: 8px 12px;
+            background-color: white;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .editor-btn:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .editor-content {
+            min-height: 150px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 15px;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .editor-content:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Lista de elementos (categorías, contactos) */
+        .items-list {
+            margin-top: 20px;
+        }
+
+        .item-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            background-color: var(--secondary);
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .item-details {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
         /* Footer */
         footer {
             background-color: var(--text);
@@ -743,6 +823,17 @@
                 width: 100%;
                 justify-content: flex-end;
             }
+            
+            .item-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .item-actions {
+                margin-top: 10px;
+                width: 100%;
+                justify-content: flex-end;
+            }
         }
     </style>
 </head>
@@ -784,12 +875,8 @@
     <!-- Categorías -->
     <section class="container">
         <h2 class="section-title">Nuestras Categorías</h2>
-        <div class="categories">
-            <div class="category active" data-category="all">Todos</div>
-            <div class="category" data-category="electronics">Electrónica</div>
-            <div class="category" data-category="beauty">Belleza</div>
-            <div class="category" data-category="accessories">Accesorios</div>
-            <div class="category" data-category="home">Hogar</div>
+        <div class="categories" id="categories-container">
+            <!-- Las categorías se cargarán dinámicamente aquí -->
         </div>
     </section>
 
@@ -835,7 +922,9 @@
         
         <div class="admin-tabs">
             <button class="admin-tab active" data-tab="products-tab">Productos</button>
+            <button class="admin-tab" data-tab="categories-tab">Categorías</button>
             <button class="admin-tab" data-tab="banners-tab">Banners</button>
+            <button class="admin-tab" data-tab="contact-tab">Contacto</button>
             <button class="admin-tab" data-tab="settings-tab">Configuración</button>
         </div>
         
@@ -863,10 +952,7 @@
                         <div class="form-group">
                             <label class="form-label" for="product-category">Categoría</label>
                             <select class="form-control" id="product-category" required>
-                                <option value="electronics">Electrónica</option>
-                                <option value="beauty">Belleza</option>
-                                <option value="accessories">Accesorios</option>
-                                <option value="home">Hogar</option>
+                                <!-- Las categorías se cargarán dinámicamente aquí -->
                             </select>
                         </div>
                         <div class="form-group">
@@ -885,6 +971,29 @@
                 
                 <div class="product-list" id="admin-product-list">
                     <!-- Lista de productos para administración -->
+                </div>
+            </div>
+            
+            <!-- Gestión de Categorías -->
+            <div class="admin-tab-content" id="categories-tab">
+                <h3>Gestión de Categorías</h3>
+                <form id="category-form">
+                    <input type="hidden" id="category-id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="category-name">Nombre de la Categoría</label>
+                            <input type="text" class="form-control" id="category-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="category-color">Color de la Categoría</label>
+                            <input type="color" class="form-control" id="category-color" value="#6366f1">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn" id="save-category">Guardar Categoría</button>
+                </form>
+                
+                <div class="items-list" id="admin-categories-list">
+                    <!-- Lista de categorías para administración -->
                 </div>
             </div>
             
@@ -917,6 +1026,85 @@
                 </div>
             </div>
             
+            <!-- Gestión de Contacto -->
+            <div class="admin-tab-content" id="contact-tab">
+                <h3>Gestión de Información de Contacto</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Descripción de Contacto</label>
+                    <div class="editor-toolbar" id="contact-toolbar">
+                        <button type="button" class="editor-btn" data-command="bold"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="editor-btn" data-command="italic"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="editor-btn" data-command="underline"><i class="fas fa-underline"></i></button>
+                        <button type="button" class="editor-btn" data-command="insertUnorderedList"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" class="editor-btn" data-command="insertOrderedList"><i class="fas fa-list-ol"></i></button>
+                        <button type="button" class="editor-btn" data-command="createLink"><i class="fas fa-link"></i></button>
+                    </div>
+                    <div class="editor-content" id="contact-description" contenteditable="true">
+                        Tu destino para compras en línea de calidad. Ofrecemos los mejores productos con entrega rápida y servicio al cliente excepcional.
+                    </div>
+                </div>
+                
+                <h4 style="margin-top: 30px;">Números de Teléfono</h4>
+                <form id="phone-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="phone-label">Etiqueta</label>
+                            <input type="text" class="form-control" id="phone-label" placeholder="Ej: Ventas, Soporte" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="phone-number">Número</label>
+                            <input type="text" class="form-control" id="phone-number" placeholder="Ej: +1 234 567 890" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-sm">Agregar Teléfono</button>
+                </form>
+                
+                <div class="items-list" id="phones-list">
+                    <!-- Lista de teléfonos -->
+                </div>
+                
+                <h4 style="margin-top: 30px;">Direcciones de Email</h4>
+                <form id="email-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="email-label">Etiqueta</label>
+                            <input type="text" class="form-control" id="email-label" placeholder="Ej: Ventas, Soporte" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="email-address">Email</label>
+                            <input type="email" class="form-control" id="email-address" placeholder="Ej: info@tienda.com" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-sm">Agregar Email</button>
+                </form>
+                
+                <div class="items-list" id="emails-list">
+                    <!-- Lista de emails -->
+                </div>
+                
+                <h4 style="margin-top: 30px;">Direcciones Físicas</h4>
+                <form id="address-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="address-label">Etiqueta</label>
+                            <input type="text" class="form-control" id="address-label" placeholder="Ej: Oficina Principal, Sucursal" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="address-text">Dirección</label>
+                            <input type="text" class="form-control" id="address-text" placeholder="Ej: Calle Principal 123, Ciudad" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-sm">Agregar Dirección</button>
+                </form>
+                
+                <div class="items-list" id="addresses-list">
+                    <!-- Lista de direcciones -->
+                </div>
+                
+                <button type="button" class="btn" id="save-contact" style="margin-top: 30px;">Guardar Información de Contacto</button>
+            </div>
+            
             <!-- Configuración -->
             <div class="admin-tab-content" id="settings-tab">
                 <h3>Configuración de la Tienda</h3>
@@ -926,7 +1114,7 @@
                         <input type="text" class="form-control" id="store-name-input" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="whatsapp-number">Número de WhatsApp</label>
+                        <label class="form-label" for="whatsapp-number">Número de WhatsApp para Pedidos</label>
                         <input type="text" class="form-control" id="whatsapp-number" placeholder="Ej: +1234567890" required>
                     </div>
                     <button type="submit" class="btn">Guardar Configuración</button>
@@ -936,12 +1124,14 @@
     </section>
 
     <!-- Footer -->
-    <footer>
+    <footer id="contact">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Tienda Online</h3>
-                    <p>Tu destino para compras en línea de calidad. Ofrecemos los mejores productos con entrega rápida y servicio al cliente excepcional.</p>
+                    <h3 id="footer-store-name">Tienda Online</h3>
+                    <div id="footer-description">
+                        <p>Tu destino para compras en línea de calidad. Ofrecemos los mejores productos con entrega rápida y servicio al cliente excepcional.</p>
+                    </div>
                     <div class="social-icons">
                         <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
@@ -961,15 +1151,13 @@
                 </div>
                 <div class="footer-section">
                     <h3>Información de Contacto</h3>
-                    <ul class="footer-links">
-                        <li><i class="fas fa-map-marker-alt"></i> Dirección: Calle Principal 123, Ciudad</li>
-                        <li><i class="fas fa-phone"></i> Teléfono: +1 234 567 890</li>
-                        <li><i class="fas fa-envelope"></i> Email: info@tiendaonline.com</li>
+                    <ul class="footer-links" id="footer-contact-info">
+                        <!-- La información de contacto se cargará dinámicamente aquí -->
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2023 Tienda Online. Todos los derechos reservados.</p>
+                <p>&copy; 2023 <span id="footer-copyright">Tienda Online</span>. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>
@@ -994,13 +1182,71 @@
                 category: "electronics",
                 image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
                 colors: ["Negro", "Blanco", "Rojo"]
+            },
+            {
+                id: 3,
+                name: "Kit de Maquillaje Profesional",
+                price: 89.99,
+                description: "Kit completo con productos de alta calidad para un maquillaje perfecto.",
+                category: "beauty",
+                image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=880&q=80",
+                colors: ["Rosa", "Dorado", "Plateado"]
+            },
+            {
+                id: 4,
+                name: "Reloj Inteligente Deportivo",
+                price: 199.99,
+                description: "Reloj inteligente con monitor de actividad, GPS y resistencia al agua.",
+                category: "accessories",
+                image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1099&q=80",
+                colors: ["Negro", "Azul", "Gris"]
+            },
+            {
+                id: 5,
+                name: "Lámpara de Mesa LED",
+                price: 49.99,
+                description: "Lámpara moderna con luz regulable y diseño elegante para cualquier espacio.",
+                category: "home",
+                image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
+                colors: ["Blanco", "Negro", "Madera"]
+            },
+            {
+                id: 6,
+                name: "Mochila Impermeable",
+                price: 79.99,
+                description: "Mochila resistente al agua con múltiples compartimentos y diseño ergonómico.",
+                category: "accessories",
+                image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80",
+                colors: ["Azul Marino", "Negro", "Gris"]
             }
+        ];
+
+        let categories = [
+            { id: "electronics", name: "Electrónica", color: "#6366f1" },
+            { id: "beauty", name: "Belleza", color: "#f59e0b" },
+            { id: "accessories", name: "Accesorios", color: "#10b981" },
+            { id: "home", name: "Hogar", color: "#ef4444" }
         ];
 
         let cart = [];
         let storeSettings = {
             storeName: "Tienda Online",
             whatsappNumber: "+1234567890"
+        };
+
+        let contactInfo = {
+            description: "Tu destino para compras en línea de calidad. Ofrecemos los mejores productos con entrega rápida y servicio al cliente excepcional.",
+            phones: [
+                { id: 1, label: "Ventas", number: "+1 234 567 890" },
+                { id: 2, label: "Soporte", number: "+1 234 567 891" }
+            ],
+            emails: [
+                { id: 1, label: "General", address: "info@tiendaonline.com" },
+                { id: 2, label: "Soporte", address: "soporte@tiendaonline.com" }
+            ],
+            addresses: [
+                { id: 1, label: "Oficina Principal", text: "Calle Principal 123, Ciudad" }
+            ]
         };
 
         let bannerData = {
@@ -1011,6 +1257,7 @@
 
         // Elementos del DOM
         const productsContainer = document.getElementById('products-container');
+        const categoriesContainer = document.getElementById('categories-container');
         const cartCount = document.getElementById('cart-count');
         const cartIcon = document.getElementById('cart-icon');
         const cartModal = document.getElementById('cart-modal');
@@ -1019,7 +1266,6 @@
         const cartItems = document.getElementById('cart-items');
         const cartTotal = document.getElementById('cart-total');
         const checkoutWhatsApp = document.getElementById('checkout-whatsapp');
-        const categories = document.querySelectorAll('.category');
         const adminLink = document.getElementById('admin-link');
         const adminPanel = document.getElementById('admin-panel');
         const logoutAdmin = document.getElementById('logout-admin');
@@ -1042,15 +1288,35 @@
         const bannerSlide = document.getElementById('banner-slide');
         const bannerTitle = document.getElementById('banner-title');
         const bannerDescription = document.getElementById('banner-description');
+        const productCategorySelect = document.getElementById('product-category');
+        const categoryForm = document.getElementById('category-form');
+        const adminCategoriesList = document.getElementById('admin-categories-list');
+        const contactDescription = document.getElementById('contact-description');
+        const contactToolbar = document.getElementById('contact-toolbar');
+        const phoneForm = document.getElementById('phone-form');
+        const phonesList = document.getElementById('phones-list');
+        const emailForm = document.getElementById('email-form');
+        const emailsList = document.getElementById('emails-list');
+        const addressForm = document.getElementById('address-form');
+        const addressesList = document.getElementById('addresses-list');
+        const saveContactButton = document.getElementById('save-contact');
+        const footerDescription = document.getElementById('footer-description');
+        const footerContactInfo = document.getElementById('footer-contact-info');
+        const footerStoreName = document.getElementById('footer-store-name');
+        const footerCopyright = document.getElementById('footer-copyright');
 
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
+            renderCategories();
             renderProducts();
             updateCartCount();
             loadStoreSettings();
             loadProductsFromStorage();
+            loadCategoriesFromStorage();
+            loadContactInfoFromStorage();
             loadBannerFromStorage();
             updateBannerDisplay();
+            updateContactInfoDisplay();
             
             // Verificar si estamos en modo administrador
             if(localStorage.getItem('adminLoggedIn') === 'true') {
@@ -1060,6 +1326,26 @@
             // Event listeners para subida de imágenes
             productImageInput.addEventListener('change', handleProductImageUpload);
             bannerImageInput.addEventListener('change', handleBannerImageUpload);
+
+            // Event listeners para el editor de texto
+            contactToolbar.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON' || e.target.parentElement.tagName === 'BUTTON') {
+                    e.preventDefault();
+                    const button = e.target.tagName === 'BUTTON' ? e.target : e.target.parentElement;
+                    const command = button.getAttribute('data-command');
+                    
+                    if (command === 'createLink') {
+                        const url = prompt('Ingresa la URL:');
+                        if (url) {
+                            document.execCommand(command, false, url);
+                        }
+                    } else {
+                        document.execCommand(command, false, null);
+                    }
+                    
+                    contactDescription.focus();
+                }
+            });
         });
 
         // Función para manejar la subida de imágenes de productos
@@ -1169,6 +1455,52 @@
             if (savedBanner) {
                 bannerData = JSON.parse(savedBanner);
             }
+        }
+
+        // Renderizar categorías
+        function renderCategories() {
+            categoriesContainer.innerHTML = '';
+            
+            // Agregar categoría "Todos"
+            const allCategory = document.createElement('div');
+            allCategory.className = 'category active';
+            allCategory.setAttribute('data-category', 'all');
+            allCategory.textContent = 'Todos';
+            allCategory.addEventListener('click', function() {
+                document.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                renderProducts('all');
+            });
+            categoriesContainer.appendChild(allCategory);
+            
+            // Agregar categorías personalizadas
+            categories.forEach(category => {
+                const categoryElement = document.createElement('div');
+                categoryElement.className = 'category';
+                categoryElement.setAttribute('data-category', category.id);
+                categoryElement.textContent = category.name;
+                categoryElement.addEventListener('click', function() {
+                    document.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    renderProducts(category.id);
+                });
+                categoriesContainer.appendChild(categoryElement);
+            });
+            
+            // Actualizar selector de categorías en el formulario de productos
+            updateCategorySelect();
+        }
+
+        // Actualizar selector de categorías en el formulario de productos
+        function updateCategorySelect() {
+            productCategorySelect.innerHTML = '';
+            
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                productCategorySelect.appendChild(option);
+            });
         }
 
         // Renderizar productos
@@ -1405,6 +1737,8 @@
             
             // Cargar datos en el panel
             renderAdminProducts();
+            renderAdminCategories();
+            renderContactInfoForms();
             loadStoreSettings();
             loadBannerFormData();
         }
@@ -1463,6 +1797,166 @@
             });
         }
 
+        function renderAdminCategories() {
+            adminCategoriesList.innerHTML = '';
+            
+            if (categories.length === 0) {
+                adminCategoriesList.innerHTML = '<p>No hay categorías registradas.</p>';
+                return;
+            }
+            
+            categories.forEach(category => {
+                const categoryItem = document.createElement('div');
+                categoryItem.className = 'item-card';
+                categoryItem.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-name">${category.name}</div>
+                        <div class="item-details">ID: ${category.id}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-edit btn-sm edit-category" data-id="${category.id}">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-delete btn-sm delete-category" data-id="${category.id}">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </div>
+                `;
+                adminCategoriesList.appendChild(categoryItem);
+            });
+            
+            // Agregar event listeners a los botones de editar y eliminar
+            document.querySelectorAll('.edit-category').forEach(button => {
+                button.addEventListener('click', function() {
+                    const categoryId = this.getAttribute('data-id');
+                    editCategory(categoryId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-category').forEach(button => {
+                button.addEventListener('click', function() {
+                    const categoryId = this.getAttribute('data-id');
+                    deleteCategory(categoryId);
+                });
+            });
+        }
+
+        function renderContactInfoForms() {
+            // Cargar información de contacto en los formularios
+            contactDescription.innerHTML = contactInfo.description;
+            
+            // Renderizar teléfonos
+            renderPhonesList();
+            
+            // Renderizar emails
+            renderEmailsList();
+            
+            // Renderizar direcciones
+            renderAddressesList();
+        }
+
+        function renderPhonesList() {
+            phonesList.innerHTML = '';
+            
+            if (contactInfo.phones.length === 0) {
+                phonesList.innerHTML = '<p>No hay números de teléfono registrados.</p>';
+                return;
+            }
+            
+            contactInfo.phones.forEach(phone => {
+                const phoneItem = document.createElement('div');
+                phoneItem.className = 'item-card';
+                phoneItem.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-name">${phone.label}</div>
+                        <div class="item-details">${phone.number}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-delete btn-sm delete-phone" data-id="${phone.id}">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </div>
+                `;
+                phonesList.appendChild(phoneItem);
+            });
+            
+            // Agregar event listeners a los botones de eliminar
+            document.querySelectorAll('.delete-phone').forEach(button => {
+                button.addEventListener('click', function() {
+                    const phoneId = parseInt(this.getAttribute('data-id'));
+                    deletePhone(phoneId);
+                });
+            });
+        }
+
+        function renderEmailsList() {
+            emailsList.innerHTML = '';
+            
+            if (contactInfo.emails.length === 0) {
+                emailsList.innerHTML = '<p>No hay direcciones de email registradas.</p>';
+                return;
+            }
+            
+            contactInfo.emails.forEach(email => {
+                const emailItem = document.createElement('div');
+                emailItem.className = 'item-card';
+                emailItem.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-name">${email.label}</div>
+                        <div class="item-details">${email.address}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-delete btn-sm delete-email" data-id="${email.id}">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </div>
+                `;
+                emailsList.appendChild(emailItem);
+            });
+            
+            // Agregar event listeners a los botones de eliminar
+            document.querySelectorAll('.delete-email').forEach(button => {
+                button.addEventListener('click', function() {
+                    const emailId = parseInt(this.getAttribute('data-id'));
+                    deleteEmail(emailId);
+                });
+            });
+        }
+
+        function renderAddressesList() {
+            addressesList.innerHTML = '';
+            
+            if (contactInfo.addresses.length === 0) {
+                addressesList.innerHTML = '<p>No hay direcciones registradas.</p>';
+                return;
+            }
+            
+            contactInfo.addresses.forEach(address => {
+                const addressItem = document.createElement('div');
+                addressItem.className = 'item-card';
+                addressItem.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-name">${address.label}</div>
+                        <div class="item-details">${address.text}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-delete btn-sm delete-address" data-id="${address.id}">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </div>
+                `;
+                addressesList.appendChild(addressItem);
+            });
+            
+            // Agregar event listeners a los botones de eliminar
+            document.querySelectorAll('.delete-address').forEach(button => {
+                button.addEventListener('click', function() {
+                    const addressId = parseInt(this.getAttribute('data-id'));
+                    deleteAddress(addressId);
+                });
+            });
+        }
+
         function editProduct(productId) {
             const product = products.find(p => p.id === productId);
             if (!product) return;
@@ -1493,6 +1987,20 @@
             document.getElementById('product-form').scrollIntoView({ behavior: 'smooth' });
         }
 
+        function editCategory(categoryId) {
+            const category = categories.find(c => c.id === categoryId);
+            if (!category) return;
+            
+            document.getElementById('category-id').value = category.id;
+            document.getElementById('category-name').value = category.name;
+            document.getElementById('category-color').value = category.color;
+            
+            document.getElementById('save-category').textContent = 'Actualizar Categoría';
+            
+            // Scroll al formulario
+            document.getElementById('category-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
         function deleteProduct(productId) {
             if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
                 const productIndex = products.findIndex(p => p.id === productId);
@@ -1504,6 +2012,54 @@
                     renderProducts();
                     showNotification(`"${productName}" eliminado correctamente`, 'success');
                 }
+            }
+        }
+
+        function deleteCategory(categoryId) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta categoría?')) {
+                // Verificar si hay productos en esta categoría
+                const productsInCategory = products.filter(p => p.category === categoryId);
+                if (productsInCategory.length > 0) {
+                    showNotification('No puedes eliminar una categoría que tiene productos asignados. Primero mueve o elimina los productos.', 'error');
+                    return;
+                }
+                
+                const categoryIndex = categories.findIndex(c => c.id === categoryId);
+                if (categoryIndex !== -1) {
+                    const categoryName = categories[categoryIndex].name;
+                    categories.splice(categoryIndex, 1);
+                    saveCategoriesToStorage();
+                    renderAdminCategories();
+                    renderCategories();
+                    showNotification(`"${categoryName}" eliminada correctamente`, 'success');
+                }
+            }
+        }
+
+        function deletePhone(phoneId) {
+            const phoneIndex = contactInfo.phones.findIndex(p => p.id === phoneId);
+            if (phoneIndex !== -1) {
+                contactInfo.phones.splice(phoneIndex, 1);
+                renderPhonesList();
+                showNotification('Teléfono eliminado correctamente', 'success');
+            }
+        }
+
+        function deleteEmail(emailId) {
+            const emailIndex = contactInfo.emails.findIndex(e => e.id === emailId);
+            if (emailIndex !== -1) {
+                contactInfo.emails.splice(emailIndex, 1);
+                renderEmailsList();
+                showNotification('Email eliminado correctamente', 'success');
+            }
+        }
+
+        function deleteAddress(addressId) {
+            const addressIndex = contactInfo.addresses.findIndex(a => a.id === addressId);
+            if (addressIndex !== -1) {
+                contactInfo.addresses.splice(addressIndex, 1);
+                renderAddressesList();
+                showNotification('Dirección eliminada correctamente', 'success');
             }
         }
 
@@ -1547,10 +2103,110 @@
             delete imageInput.dataset.base64;
         }
 
+        function saveCategory(categoryData) {
+            if (categoryData.id) {
+                // Actualizar categoría existente
+                const index = categories.findIndex(c => c.id === categoryData.id);
+                if (index !== -1) {
+                    categories[index] = {...categories[index], ...categoryData};
+                    showNotification(`"${categoryData.name}" actualizada correctamente`, 'success');
+                }
+            } else {
+                // Crear nueva categoría
+                // Generar ID basado en el nombre (sin espacios, en minúsculas)
+                const newId = categoryData.name.toLowerCase().replace(/\s+/g, '-');
+                
+                // Verificar si ya existe una categoría con ese ID
+                if (categories.find(c => c.id === newId)) {
+                    showNotification('Ya existe una categoría con ese nombre. Por favor, elige un nombre diferente.', 'error');
+                    return;
+                }
+                
+                categoryData.id = newId;
+                categories.push(categoryData);
+                showNotification(`"${categoryData.name}" creada correctamente`, 'success');
+            }
+            
+            saveCategoriesToStorage();
+            renderAdminCategories();
+            renderCategories();
+            categoryForm.reset();
+            document.getElementById('save-category').textContent = 'Guardar Categoría';
+            document.getElementById('category-id').value = '';
+        }
+
+        function saveContactInfo() {
+            contactInfo.description = contactDescription.innerHTML;
+            
+            saveContactInfoToStorage();
+            updateContactInfoDisplay();
+            showNotification('Información de contacto guardada correctamente', 'success');
+        }
+
+        function addPhone(phoneData) {
+            const newId = contactInfo.phones.length > 0 ? Math.max(...contactInfo.phones.map(p => p.id)) + 1 : 1;
+            phoneData.id = newId;
+            contactInfo.phones.push(phoneData);
+            renderPhonesList();
+            phoneForm.reset();
+            showNotification('Teléfono agregado correctamente', 'success');
+        }
+
+        function addEmail(emailData) {
+            const newId = contactInfo.emails.length > 0 ? Math.max(...contactInfo.emails.map(e => e.id)) + 1 : 1;
+            emailData.id = newId;
+            contactInfo.emails.push(emailData);
+            renderEmailsList();
+            emailForm.reset();
+            showNotification('Email agregado correctamente', 'success');
+        }
+
+        function addAddress(addressData) {
+            const newId = contactInfo.addresses.length > 0 ? Math.max(...contactInfo.addresses.map(a => a.id)) + 1 : 1;
+            addressData.id = newId;
+            contactInfo.addresses.push(addressData);
+            renderAddressesList();
+            addressForm.reset();
+            showNotification('Dirección agregada correctamente', 'success');
+        }
+
         // Cargar datos del banner en el formulario
         function loadBannerFormData() {
             bannerTitleInput.value = bannerData.title;
             bannerDescriptionInput.value = bannerData.description;
+        }
+
+        function updateContactInfoDisplay() {
+            // Actualizar descripción en el footer
+            footerDescription.innerHTML = contactInfo.description;
+            
+            // Actualizar información de contacto en el footer
+            footerContactInfo.innerHTML = '';
+            
+            // Agregar teléfonos
+            contactInfo.phones.forEach(phone => {
+                const phoneItem = document.createElement('li');
+                phoneItem.innerHTML = `<i class="fas fa-phone"></i> ${phone.label}: ${phone.number}`;
+                footerContactInfo.appendChild(phoneItem);
+            });
+            
+            // Agregar emails
+            contactInfo.emails.forEach(email => {
+                const emailItem = document.createElement('li');
+                emailItem.innerHTML = `<i class="fas fa-envelope"></i> ${email.label}: ${email.address}`;
+                footerContactInfo.appendChild(emailItem);
+            });
+            
+            // Agregar direcciones
+            contactInfo.addresses.forEach(address => {
+                const addressItem = document.createElement('li');
+                addressItem.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${address.label}: ${address.text}`;
+                footerContactInfo.appendChild(addressItem);
+            });
+            
+            // Actualizar nombre de la tienda en el footer
+            footerStoreName.textContent = storeSettings.storeName;
+            footerCopyright.textContent = storeSettings.storeName;
         }
 
         function loadStoreSettings() {
@@ -1571,6 +2227,7 @@
             localStorage.setItem('storeSettings', JSON.stringify(storeSettings));
             
             storeNameElement.textContent = storeSettings.storeName;
+            updateContactInfoDisplay();
             
             showNotification('Configuración guardada correctamente', 'success');
         }
@@ -1585,6 +2242,30 @@
             if (savedProducts) {
                 products = JSON.parse(savedProducts);
                 renderProducts();
+            }
+        }
+
+        function saveCategoriesToStorage() {
+            localStorage.setItem('storeCategories', JSON.stringify(categories));
+        }
+
+        function loadCategoriesFromStorage() {
+            const savedCategories = localStorage.getItem('storeCategories');
+            if (savedCategories) {
+                categories = JSON.parse(savedCategories);
+                renderCategories();
+            }
+        }
+
+        function saveContactInfoToStorage() {
+            localStorage.setItem('storeContactInfo', JSON.stringify(contactInfo));
+        }
+
+        function loadContactInfoFromStorage() {
+            const savedContactInfo = localStorage.getItem('storeContactInfo');
+            if (savedContactInfo) {
+                contactInfo = JSON.parse(savedContactInfo);
+                updateContactInfoDisplay();
             }
         }
 
@@ -1638,14 +2319,6 @@
             window.open(whatsappUrl, '_blank');
         });
 
-        categories.forEach(category => {
-            category.addEventListener('click', function() {
-                categories.forEach(c => c.classList.remove('active'));
-                this.classList.add('active');
-                renderProducts(this.getAttribute('data-category'));
-            });
-        });
-
         adminLink.addEventListener('click', function(e) {
             e.preventDefault();
             showAdminPanel();
@@ -1686,9 +2359,58 @@
             saveProduct(productData);
         });
 
+        categoryForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const categoryData = {
+                id: document.getElementById('category-id').value || null,
+                name: document.getElementById('category-name').value,
+                color: document.getElementById('category-color').value
+            };
+            
+            saveCategory(categoryData);
+        });
+
         bannerForm.addEventListener('submit', function(e) {
             e.preventDefault();
             saveBanner(bannerData);
+        });
+
+        phoneForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const phoneData = {
+                label: document.getElementById('phone-label').value,
+                number: document.getElementById('phone-number').value
+            };
+            
+            addPhone(phoneData);
+        });
+
+        emailForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const emailData = {
+                label: document.getElementById('email-label').value,
+                address: document.getElementById('email-address').value
+            };
+            
+            addEmail(emailData);
+        });
+
+        addressForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const addressData = {
+                label: document.getElementById('address-label').value,
+                text: document.getElementById('address-text').value
+            };
+            
+            addAddress(addressData);
+        });
+
+        saveContactButton.addEventListener('click', function() {
+            saveContactInfo();
         });
 
         settingsForm.addEventListener('submit', function(e) {
